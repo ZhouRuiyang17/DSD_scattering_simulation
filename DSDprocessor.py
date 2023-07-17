@@ -44,7 +44,11 @@ def thurai(D_eq):
   else:
     return 1.065-6.25*10**(-2)*D_eq-3.99*10**(-3)*D_eq**2+7.66*10**(-4)*D_eq**3-4.095*10**(-5)*D_eq**4
 
-def prv_cal(nds, band):
+
+wave = {'x': tmatrix_aux.wl_X,
+        'c': tmatrix_aux.wl_C,
+        's': tmatrix_aux.wl_S}
+def prv_cal(nds, band,t):
     z=[]
     zdr=[]
     cc=[]
@@ -53,9 +57,15 @@ def prv_cal(nds, band):
     for i in range(len(nds)):
     # for i in range(1):
         nd=nds[i]
+        print(i)
         # 设置：设置波段和雨滴温度
-        scatterer=Scatterer(wavelength=tmatrix_aux.wl_X, m=refractive.m_w_20C[tmatrix_aux.wl_X])
-       
+        if t == 20:
+            scatterer=Scatterer(wavelength=wave[band], m=refractive.m_w_20C[wave[band]])
+        elif t == 10:
+            scatterer=Scatterer(wavelength=wave[band], m=refractive.m_w_10C[wave[band]])
+        elif t == 0:
+            scatterer=Scatterer(wavelength=wave[band], m=refractive.m_w_0C[wave[band]])
+
         scatterer.psd_integrator=PSDIntegrator()
         # 设置2：雨滴形状模型，这里选择Thurai（2007）的雨滴形状模型
         scatterer.psd_integrator.axis_ratio_func=lambda D: 1.0/thurai(D)
@@ -140,8 +150,9 @@ if __name__ == '__main__':
     df = pd.read_excel(fpath, index_col = 0)
     # df1 = df.values
     nds = df.loc[:, 0:31].values
-    prv = prv_cal(nds)
-    
+    prv = prv_cal(nds, band = 'c', t = 10)
+    df1 = pd.concat([df, prv], axis=1)
+    df1.to_excel(r'C:\Users\HP\OneDrive\temp\待处理的DSD\53614\53614_prv.xlsx')
     # # ----多文件处理
     # import multiprocessing as mp
     # pool = mp.Pool(5)
